@@ -22,16 +22,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : { statusCode: 500, message: 'Internal Server Error' };
 
-    if (request.url === '/api/auth/me') {
-      console.error(
-        '\n\nNsjstarterException\n================\n\nAuth.me Error:',
-        {
-          ip: request.ip,
-          timestamp: new Date().toString(),
-        },
-      );
+    const ip =
+      request.headers['x-forwarded-for'] ||
+      request.socket.remoteAddress ||
+      request.ip;
+
+    if (['/api/auth/me', '/api/user/me'].includes(request.url)) {
+      console.error('\n\nNsjstarterException\n============\n\nAuth.me Error:', {
+        ip,
+        timestamp: new Date().toString(),
+      });
     } else {
-      console.error('\n\nNsjstarterException\n================\n\n', exception);
+      console.error('\n\nNsjstarterException\n================\n\n', {
+        exception,
+        ip,
+        timestamp: new Date().toString(),
+      });
     }
 
     const rs =
